@@ -1,5 +1,11 @@
 **Due: Tuesday 03 October 2023, 2pm EDT**
 
+Notes:
+  - Your submission should be uploaded to your GitHub account.
+  - Please use Python; talk with me if you'd like to solve this using another language
+  - Your solution should include concepts discussed in class, minimally including functions and type hints.
+  - Your solution should be runnable as a standalone file (i.e., it contains a main function — `if __name__ == __main__:`). See [DigitalOcean's guide](https://www.digitalocean.com/community/tutorials/python-main-function) for an example of this.
+
 # Overview
 
 Santa's reindeer typically eat regular reindeer food, but they need a lot of magical energy to deliver presents on Christmas. For that, their favorite snack is a special type of star fruit that only grows deep in the jungle. The Elves have brought you on their annual expedition to the grove where the fruit grows.
