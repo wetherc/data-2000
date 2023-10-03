@@ -68,3 +68,7 @@ In the first group, the only item type that appears in all three rucksacks is lo
 Priorities for these items must still be found to organize the sticker attachment efforts: here, they are 18 (`r`) for the first group and 52 (`Z`) for the second group. The sum of these is 70.
 
 Find the item type that corresponds to the badges of each three-Elf group. **What is the sum of the priorities of those item types?**
+
+-----
+
+This problem originally appeared in Advent of Code: https://adventofcode.com/2022/day/3
