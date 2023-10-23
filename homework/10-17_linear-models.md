@@ -1,4 +1,4 @@
-# Data Cleaning
+# Linear Models
 
 This homework is due on or before Tuesday 24 October, 11:59pm Eastern time. Publish your code to GitHub and provide a link to it in your Canvas submission.
 
