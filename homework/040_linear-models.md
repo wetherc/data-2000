@@ -1,57 +1,209 @@
-# Linear Models
-
-This homework is due on or before Tuesday 24 October, 11:59pm Eastern time. Publish your code to GitHub and provide a link to it in your Canvas submission.
-
-For this problem set, we will use the Craigslist used vehicle dataset from our 03 Oct lab. As a reminder, you can load it into your development environment with:
-
-```python
-import pandas as pd
-
-car_data_raw = pd.read_csv("https://cdn.c18l.org/vehicles_lab.csv")
-```
-
-## Part 1: Feature Selection
-
-Our dataset contains the following features:
-  - region
-  - price
-  - year
-  - manufacturer
-  - model
-  - condition
-  - cylinders
-  - fuel
-  - odometer
-  - title_status
-  - transmission
-  - drive
-  - size
-  - type
-  - paint_color
-  - description
-  - state
-  - lat
-  - long
-  - posting_date
-
-`price` is the column we will use as our label; the remaining columns are all possible inputs to our model.
-
-**Create a dataframe with `price` and between 5 and 7 additional columns from our original dataset that you want to use as features for a predictive model. Explain your choices.**
-
-## Part 2: Data Cleaning
-
-Based on the dataset that you created for Part 1, **normalize any numeric features, dummy- or one-hot encode any categorical features, and remove any outliers or spurious records. Explain your choices.** 
-
-## Part 3: Feature Engineering
-
-Based on the dataset that you created for Part 2, **create two or more new engineered feature columns and explain why you chose to create these.**
-
-## Part 4: Multinomial classification
-
-Based on the dataset that you created for Part 3:
-
-  - Create a new `price_bin` column that bins vehicle price into $10,000 bands. E.g., `$0-$9,999`, `$10,000-19,999`, and so forth. Use [the `cut()` function](https://pandas.pydata.org/docs/reference/api/pandas.cut.html) in Pandas to do this;
-  - Split your dataset into training and testing samples at an 80:20 ratio;
-  - Train a multinomial logistic regression model to predict which price band each car will fall into. Use [scikit-learn's LogisticRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html) to do this. For a multinomial classification problem, use the `multi_class='multinomial'` parameter when fitting your model.
-
-**What is your model's accuracy on both the training and testing datasets?** You can use [scikit-learn's accuracy_score() function](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html) to determine this.
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPKcZz9FVWehbqKobekaVMI",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/wetherc/data-2000/blob/sp26/homework/040_linear-models.md\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install ucimlrepo"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "GYgDhshPUuQm",
+        "outputId": "db0c15f3-23d6-48c9-981a-49d5485ee756"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting ucimlrepo\n",
+            "  Downloading ucimlrepo-0.0.7-py3-none-any.whl.metadata (5.5 kB)\n",
+            "Requirement already satisfied: pandas>=1.0.0 in /usr/local/lib/python3.12/dist-packages (from ucimlrepo) (2.2.2)\n",
+            "Requirement already satisfied: certifi>=2020.12.5 in /usr/local/lib/python3.12/dist-packages (from ucimlrepo) (2026.1.4)\n",
+            "Requirement already satisfied: numpy>=1.26.0 in /usr/local/lib/python3.12/dist-packages (from pandas>=1.0.0->ucimlrepo) (2.0.2)\n",
+            "Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.12/dist-packages (from pandas>=1.0.0->ucimlrepo) (2.9.0.post0)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.12/dist-packages (from pandas>=1.0.0->ucimlrepo) (2025.2)\n",
+            "Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.12/dist-packages (from pandas>=1.0.0->ucimlrepo) (2025.3)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.12/dist-packages (from python-dateutil>=2.8.2->pandas>=1.0.0->ucimlrepo) (1.17.0)\n",
+            "Downloading ucimlrepo-0.0.7-py3-none-any.whl (8.0 kB)\n",
+            "Installing collected packages: ucimlrepo\n",
+            "Successfully installed ucimlrepo-0.0.7\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Lab Assignment: Predicting Heart Disease with Logistic Regression\n",
+        "\n",
+        "## Overview\n",
+        "\n",
+        "In this lab you will work with a real clinical dataset collected from patients undergoing cardiac evaluation at four medical institutions in the 1980s. Your goal is to build, evaluate, and interpret a binary logistic regression model that predicts whether a patient has heart disease based on a set of diagnostic measurements. Along the way you will practice the full modeling workflow: loading and inspecting raw data, cleaning and encoding features, fitting a logistic regression, and interpreting your results in clinically meaningful terms.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "## The Dataset\n",
+        "\n",
+        "The UCI Heart Disease dataset is one of the most widely studied datasets in machine learning, and for good reason — it is small enough to be tractable, rich enough to be interesting, and grounded in real clinical practice. The data were originally collected across four sites: the Cleveland Clinic Foundation, the Hungarian Institute of Cardiology in Budapest, the University Hospital in Zurich, and the University Hospital in Long Beach. The version most commonly used in practice, and the one you will work with here, comes from Cleveland and contains **303 patient records**.\n",
+        "\n",
+        "Each row represents a single patient. The original dataset contains a target variable (`num`) ranging from 0 to 4, indicating the degree of coronary artery narrowing observed during angiography. For this assignment you will **binarize the target**: patients with a value of 0 will be labeled **0 (no heart disease)** and patients with values 1 through 4 will be labeled **1 (heart disease present)**. This reflects the clinically relevant question: does this patient have meaningful coronary artery disease, or not?\n",
+        "\n",
+        "---\n",
+        "\n",
+        "## Features\n",
+        "\n",
+        "The dataset contains 13 predictor variables. Read these descriptions carefully — understanding what each variable actually measures will help you make better decisions during cleaning and will make your interpretation more meaningful.\n",
+        "\n",
+        "**`age`** — Age of the patient in years. A continuous variable. Older age is generally associated with higher cardiovascular risk, though the relationship is not perfectly linear.\n",
+        "\n",
+        "**`sex`** — Biological sex, encoded as 1 (male) and 0 (female). In the original study population, male patients had higher rates of disease. You should treat this as a binary categorical feature.\n",
+        "\n",
+        "**`cp`** — Chest pain type. This is a categorical variable with four values: 1 = typical angina, 2 = atypical angina, 3 = non-anginal pain, 4 = asymptomatic. Typical angina is the classic presentation of cardiac chest pain — pressure or tightness brought on by exertion and relieved by rest. Importantly, asymptomatic patients (value 4) actually show *higher* rates of disease in this dataset, which is a good reminder not to assume ordinal relationships in categorical variables. You should one-hot encode this feature.\n",
+        "\n",
+        "**`trestbps`** — Resting blood pressure in mmHg, measured at the time of hospital admission. Normal resting blood pressure is around 120/80 mmHg; elevated values may indicate hypertension and increased cardiac strain. This is a continuous feature and may contain a small number of physiologically implausible outliers worth inspecting.\n",
+        "\n",
+        "**`chol`** — Serum cholesterol in mg/dL. Higher cholesterol, particularly LDL cholesterol, is a well-established risk factor for coronary artery disease. This is continuous. Be aware that a small number of records contain a value of 0, which is physiologically impossible and should be treated as missing.\n",
+        "\n",
+        "**`fbs`** — Fasting blood sugar, recorded as a binary indicator: 1 if fasting blood sugar is greater than 120 mg/dL, 0 otherwise. Elevated fasting blood sugar is a marker of diabetes or pre-diabetes, both of which significantly increase cardiovascular risk. Treat this as binary categorical.\n",
+        "\n",
+        "**`restecg`** — Resting electrocardiographic results. Another categorical variable with three values: 0 = normal, 1 = ST-T wave abnormality (which can indicate ischemia or other cardiac stress), 2 = left ventricular hypertrophy by Estes' criteria. You should one-hot encode this feature, though be aware that value 2 is rare in this dataset and its coefficient may be unstable.\n",
+        "\n",
+        "**`thalach`** — Maximum heart rate achieved during exercise stress testing. This is the peak heart rate recorded during a supervised treadmill or cycling test. Higher maximum heart rate is generally associated with better cardiovascular fitness and lower disease risk, so you may find this feature has a negative relationship with the outcome. This is a continuous variable.\n",
+        "\n",
+        "**`exang`** — Exercise-induced angina, encoded as 1 (yes) or 0 (no). This indicates whether the patient experienced chest pain during the exercise stress test. It is one of the most clinically informative features in the dataset, as angina triggered by exertion is a strong indicator of obstructed coronary blood flow. Treat this as binary categorical.\n",
+        "\n",
+        "**`oldpeak`** — ST depression induced by exercise relative to rest, measured in millivolts. During an ECG stress test, depression of the ST segment is a sign that part of the heart muscle is not receiving adequate blood flow. A value of 0 means no depression was observed; higher values indicate greater depression and more severe ischemia. This is a continuous feature with a right-skewed distribution and a notable mass of values at exactly 0.\n",
+        "\n",
+        "**`slope`** — The slope of the peak exercise ST segment. This describes the shape of the ST segment at maximum exercise: 1 = upsloping, 2 = flat, 3 = downsloping. A downsloping or flat ST segment during peak exercise is considered more clinically concerning than an upsloping one. This should be treated as categorical and one-hot encoded.\n",
+        "\n",
+        "**`ca`** — Number of major coronary vessels colored by fluoroscopy, ranging from 0 to 3. Fluoroscopy is an imaging technique used to visualize blood flow through the coronary arteries; a vessel that \"colors\" well is unobstructed. More obstructed vessels indicates more widespread disease. This is recorded as a numeric variable but functions more like an ordinal count. **It contains missing values coded as `?` in the raw file**, which you will need to handle.\n",
+        "\n",
+        "**`thal`** — Results of a thallium stress test, a nuclear imaging procedure that reveals areas of the heart with reduced blood flow. Values are: 3 = normal, 6 = fixed defect (an area that never receives adequate blood flow, often indicating prior heart attack), 7 = reversible defect (an area with reduced flow during stress that recovers at rest, indicating ischemia). This is categorical and should be one-hot encoded. Like `ca`, **it contains missing values coded as `?`** in the raw file.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "## Your Tasks\n",
+        "\n",
+        "1. **Load and inspect** the raw data. Assign column names, identify data types, and produce a summary of missing values and basic descriptive statistics for each feature.\n",
+        "\n",
+        "2. **Clean the data.** Address the missing value issues described above. Justify your imputation strategy — mean, median, mode, or drop — for each affected feature, with a brief explanation of why that choice makes sense given the variable's distribution and clinical meaning.\n",
+        "\n",
+        "3. **Engineer your features.** Binarize the target variable. One-hot encode the appropriate categorical features. Decide how to handle the binary categoricals and document your reasoning.\n",
+        "\n",
+        "4. **Fit a logistic regression model** using a train-test split. Report accuracy, a confusion matrix, and other relevant metrics for interpreting model performance on the test set. Given the clinical context, reflect briefly on whether accuracy is the right metric here, or whether another metric deserves more weight."
+      ],
+      "metadata": {
+        "id": "evLWETbsUv3v"
+      }
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 6,
+      "metadata": {
+        "id": "dp4EfabYUoqA"
+      },
+      "outputs": [],
+      "source": [
+        "import pprint\n",
+        "from ucimlrepo import fetch_ucirepo"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "heart_disease = fetch_ucirepo(id=45)\n",
+        "X = heart_disease.data.features\n",
+        "y = heart_disease.data.targets"
+      ],
+      "metadata": {
+        "id": "cx6sO39qUrGQ"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# pprint.pprint(heart_disease.metadata, indent=4)\n",
+        "# pprint.pprint(heart_disease.variables, indent=4)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "collapsed": true,
+        "id": "b_IfUM8PVghF",
+        "outputId": "04286dbe-4606-40ba-d9fa-538483fb0d54"
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "        name     role         type demographic  \\\n",
+            "0        age  Feature      Integer         Age   \n",
+            "1        sex  Feature  Categorical         Sex   \n",
+            "2         cp  Feature  Categorical        None   \n",
+            "3   trestbps  Feature      Integer        None   \n",
+            "4       chol  Feature      Integer        None   \n",
+            "5        fbs  Feature  Categorical        None   \n",
+            "6    restecg  Feature  Categorical        None   \n",
+            "7    thalach  Feature      Integer        None   \n",
+            "8      exang  Feature  Categorical        None   \n",
+            "9    oldpeak  Feature      Integer        None   \n",
+            "10     slope  Feature  Categorical        None   \n",
+            "11        ca  Feature      Integer        None   \n",
+            "12      thal  Feature  Categorical        None   \n",
+            "13       num   Target      Integer        None   \n",
+            "\n",
+            "                                          description  units missing_values  \n",
+            "0                                                None  years             no  \n",
+            "1                                                None   None             no  \n",
+            "2                                                None   None             no  \n",
+            "3   resting blood pressure (on admission to the ho...  mm Hg             no  \n",
+            "4                                   serum cholestoral  mg/dl             no  \n",
+            "5                     fasting blood sugar > 120 mg/dl   None             no  \n",
+            "6                                                None   None             no  \n",
+            "7                         maximum heart rate achieved   None             no  \n",
+            "8                             exercise induced angina   None             no  \n",
+            "9   ST depression induced by exercise relative to ...   None             no  \n",
+            "10                                               None   None             no  \n",
+            "11  number of major vessels (0-3) colored by flour...   None            yes  \n",
+            "12                                               None   None            yes  \n",
+            "13                         diagnosis of heart disease   None             no  \n"
+          ]
+        }
+      ]
+    }
+  ]
+}
